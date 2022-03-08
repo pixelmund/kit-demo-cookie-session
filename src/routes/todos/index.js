@@ -1,19 +1,18 @@
+import { redirect } from '$lib/redirect';
 import { v4 as uuid } from '@lukeed/uuid';
 
 /**
- * @typedef {{ uid: string, text: string, done: boolean}} Todo
- */
-
-/**
- * @type {import('@sveltejs/kit').RequestHandler}
+ * @type {import('./').RequestHandler}
  */
 export const get = async ({ locals }) => {
 	return {
+		// @ts-ignore
 		body: {
 			todos: locals.session.data?.todos ?? []
 		}
 	};
 };
+
 
 export const post = async ({ request, locals }) => {
 	const form = await request.formData();
@@ -33,23 +32,12 @@ export const post = async ({ request, locals }) => {
 	};
 
 	locals.session.data = {
-		todos: [...todos, todo]
+		todos: [todo, ...todos]
 	};
 
 	return {
-		body: {
-			todo
-		}
+		body: {}
 	};
-};
-
-// If the user has JavaScript disabled, the URL will change to
-// include the method override unless we redirect back to /todos
-const redirect = {
-	status: 303,
-	headers: {
-		location: '/todos'
-	}
 };
 
 export const patch = async ({ request, locals }) => {
@@ -61,7 +49,7 @@ export const patch = async ({ request, locals }) => {
 	let todos = locals.session.data?.todos ?? [];
 	const todoIndex = todos.findIndex((todo) => todo.uid === form.get('uid'));
 
-	if (!todoIndex) {
+	if (todoIndex == null) {
 		return {
 			status: 404
 		};
@@ -77,7 +65,7 @@ export const patch = async ({ request, locals }) => {
 		todos
 	};
 
-	return redirect;
+	return redirect(request, '/todos');
 };
 
 export const del = async ({ request, locals }) => {
@@ -87,11 +75,11 @@ export const del = async ({ request, locals }) => {
 	 * @type {Todo[]}
 	 */
 	let todos = locals.session.data?.todos ?? [];
-	todos = todos.filter((todo) => todo.uid === form.get('uid'));
+	todos = todos.filter((todo) => todo.uid !== form.get('uid'));
 
 	locals.session.data = {
 		todos
 	};
 
-	return redirect;
+	return redirect(request, '/todos');
 };

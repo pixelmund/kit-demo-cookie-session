@@ -2,7 +2,13 @@ import { invalidate } from '$app/navigation';
 
 // this action (https://svelte.dev/tutorial/actions) allows us to
 // progressively enhance a <form> that already works without JS
-export function enhance(form, { pending, error, result } = {}) {
+/**
+ * 
+ * @param {HTMLFormElement} form 
+ * @param {any} functions 
+ * @returns 
+ */
+export function enhance(form, { pending, error, result, skipInvalidate } = {}) {
 	let current_token;
 
 	async function handle_submit(e) {
@@ -30,7 +36,9 @@ export function enhance(form, { pending, error, result } = {}) {
 
 				const url = new URL(form.action);
 				url.search = url.hash = '';
-				invalidate(url.href);
+				if(!skipInvalidate){
+					invalidate(url.href);
+				}
 			} else if (error) {
 				error({ data, form, error: null, response });
 			} else {
